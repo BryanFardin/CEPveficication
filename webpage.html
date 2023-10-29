@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consultando CEP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0; /* Remova a margem padrão para preencher a tela inteira */
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        label {
+            font-size: 16px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 200px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .imagem-cidade {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #resultado {
+            text-align: left;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin: 10px auto;
+            max-width: 400px;
+        }
+
+        /* Ajuste o tamanho máximo das imagens */
+        img.imagem-cidade {
+            max-width: 100%; /* Isso fará com que as imagens se ajustem ao tamanho do container */
+            height: auto; /* Manter a proporção original da imagem */
+        }
+
+        #conteudo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        #conteudo > * {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="conteudo">
+        <div id="imagens-cima"></div> <!-- Novo div para as imagens acima da caixa de input -->
+        <h1>Consultando CEP</h1>
+        <label for="CEP">Digite o CEP:</label>
+        <input type="text" id="CEP">
+        <button onclick="buscarDados()">Buscar Dados</button>
+        <div id="resultado"></div>
+        <div id="imagens-baixo"></div> <!-- Novo div para as imagens abaixo da caixa de input -->
+    </div>
+
+    <script>
+        function buscarDados() {
+            var CEP = document.getElementById('CEP').value;
+
+            var callbackName = 'exibirDados';
+
+            var script = document.createElement('script');
+            script.src = 'https://viacep.com.br/ws/' + CEP + '/json/?callback=' + callbackName;
+            document.body.appendChild(script);
+        }
+
+        function exibirDados(data) {
+            var resultado = document.getElementById('resultado');
+            resultado.innerHTML = 'Dados do CEP ' + data.cep + ':<br>';
+            resultado.innerHTML += 'Endereço: ' + data.logradouro + '<br>';
+            resultado.innerHTML += 'Complemento: ' + data.complemento + '<br>';
+            resultado.innerHTML += 'Bairro: ' + data.bairro + '<br>';
+            resultado.innerHTML += 'Cidade: ' + data.localidade + '<br>';
+            resultado.innerHTML += 'Estado: ' + data.uf + '<br';
+
+            // Agora, você também tem o estado disponível em data.uf
+            buscarImagensCidadeEstado(data.localidade, data.logradouro);
+        }
+
+        function buscarImagensCidadeEstado(cidade, estado) {
+            // Use uma API de imagens (por exemplo, Unsplash) para buscar imagens da cidade e estado
+            var apiKey = 'TLgSgASxi7c6kPD2WFWv33p8fgWyrthCAXfK6vjRlIk'; // Substitua com a sua chave de API do Unsplash
+            var imagensDivCima = document.getElementById('imagens-cima'); // Use o novo ID "imagens-cima"
+            var imagensDivBaixo = document.getElementById('imagens-baixo'); // Use o novo ID "imagens-baixo"
+            
+            // Montar a URL da API do Unsplash
+            var unsplashUrl = `https://api.unsplash.com/search/photos?query=${cidade} ${estado}&client_id=${apiKey}`;
+
+            // Fazer uma requisição AJAX para a API do Unsplash
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', unsplashUrl, true);
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var imagens = response.results;
+
+                    if (imagens.length > 0) {
+                        imagensDivCima.innerHTML = ''; // Limpa o conteúdo anterior
+                        imagensDivBaixo.innerHTML = ''; // Limpa o conteúdo anterior
+                        imagens.forEach(function(imagem) {
+                            var imgElement = document.createElement('img');
+                            imgElement.src = imagem.urls.regular;
+                            imgElement.alt = `${cidade}, ${estado}`;
+                            imgElement.className = 'imagem-cidade';
+                            imagensDivCima.appendChild(imgElement);
+                            imagensDivBaixo.appendChild(imgElement.cloneNode(true));
+                        });
+                    } else {
+                        imagensDivCima.innerHTML = 'Nenhuma imagem encontrada para ' + cidade + ', ' + estado;
+                        imagensDivBaixo.innerHTML = 'Nenhuma imagem encontrada para ' + cidade + ', ' + estado;
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+    </script>
+</body>
+</html>
