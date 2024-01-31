@@ -1,2 +1,2 @@
 # CEPveficication
-api test
+Consumo de API feito para trabalho facultativo
